@@ -30,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "upjs_jedalen_database"
+                    "VMA_jedalen_database"
                 )
                     .fallbackToDestructiveMigration(false)
                     .build()
@@ -46,6 +46,9 @@ abstract class AppDatabase : RoomDatabase() {
 interface FoodDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertFood(food: Food): Long
+
+    @Query("SELECT * FROM food WHERE name = :name LIMIT 1")
+    fun getFoodByName(name: String): Food?
 
     @Query("SELECT * FROM food")
     fun getAllFoods(): List<Food>
