@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="@android:color/white">
+
+    <!-- Food name -->
+    <TextView
+        android:id="@+id/tvItemName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pizza"
+        android:textSize="24sp"
+        android:textStyle="bold"/>
+
+    <!-- Quantity * Price = Final price -->
+    <TextView
+        android:id="@+id/tvItemQuantityPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2 * 3.50 = 7.00 €"
+        android:textSize="24sp"
+        android:layout_marginTop="2dp"/>
+</LinearLayout>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <!-- Header with date, time, total -->
+    <TextView
+        android:id="@+id/tvDateDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date: 01-01-2025"
+        android:textSize="24sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvTimeDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time: 12:30"
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/tvTotalDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total: 15.50 €"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_green_dark"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- RecyclerView for lunch items -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewLunchItems"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>

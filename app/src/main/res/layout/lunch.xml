@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="2"
         android:text="01-07-2025"
-        android:textSize="16sp"/>
+        android:textSize="24sp"/>
 
     <TextView
         android:id="@+id/tvTime"
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="11:05"
-        android:textSize="16sp"
+        android:textSize="24sp"
         android:gravity="center"/>
 
     <TextView
@@ -28,6 +28,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="4.15 €"
-        android:textSize="16sp"
+        android:textSize="24sp"
         android:gravity="end"/>
 </LinearLayout>

@@ -1,5 +1,6 @@
 package sk.upjs.vmajedalen
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,13 @@ class RecordsAdapter : RecyclerView.Adapter<RecordsAdapter.RecordViewHolder>() {
             tvDate.text = lunch.date
             tvTime.text = lunch.time
             tvPrice.text = "%.2f €".format(lunch.total)
+
+            itemView.setOnClickListener {
+                val context = itemView.context
+                val intent = Intent(context, LunchDetailActivity::class.java)
+                intent.putExtra(LunchDetailActivity.EXTRA_LUNCH_ID, lunch.id)
+                context.startActivity(intent)
+            }
         }
     }
 }

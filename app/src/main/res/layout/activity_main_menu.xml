@@ -11,27 +11,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Načítať nový bloček"
-        android:layout_marginVertical="16dp" />
+        android:layout_marginVertical="24dp" />
 
     <Button
         android:id="@+id/btnRecords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Prehľad obedov"
-        android:layout_marginVertical="16dp" />
+        android:layout_marginVertical="24dp" />
 
     <Button
         android:id="@+id/btnStats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Štatistika"
-        android:layout_marginVertical="16dp" />
+        android:layout_marginVertical="24dp" />
 
     <Button
         android:id="@+id/btnCalculator"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Kalkulačka"
-        android:layout_marginVertical="16dp" />
+        android:layout_marginVertical="24dp" />
 
 </LinearLayout>
