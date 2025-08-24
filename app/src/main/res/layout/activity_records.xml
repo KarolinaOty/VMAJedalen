@@ -8,7 +8,7 @@
         android:id="@+id/inputYear"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Enter Year (2025)"
+        android:hint="Zadaj rok (2025)"
         android:inputType="number"
         android:padding="8dp" />
 
@@ -16,7 +16,7 @@
         android:id="@+id/inputMonth"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Enter Month (01-12)"
+        android:hint="Zadaj mesiac (01-12)"
         android:inputType="number"
         android:padding="8dp" />
 
@@ -24,7 +24,7 @@
         android:id="@+id/btnFilter"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Filter"
+        android:text="Filtruj"
         android:enabled="false" />
     <!-- start disabled -->
 
@@ -33,7 +33,7 @@
         android:id="@+id/tvTotal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Total: 0.00 €"
+        android:text="Spolu: 0.00 €"
         android:textSize="24sp"
         android:paddingTop="8dp"
         android:textStyle="bold" />

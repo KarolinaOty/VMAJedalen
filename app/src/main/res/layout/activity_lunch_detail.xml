@@ -10,7 +10,7 @@
         android:id="@+id/tvDateDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Date: 01-01-2025"
+        android:text="Dátum: 01-01-2025"
         android:textSize="24sp"
         android:textStyle="bold"/>
 
@@ -18,14 +18,14 @@
         android:id="@+id/tvTimeDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time: 12:30"
+        android:text="Čas: 12:30"
         android:textSize="24sp"/>
 
     <TextView
         android:id="@+id/tvTotalDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total: 15.50 €"
+        android:text="Spolu: 15.50 €"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@android:color/holo_green_dark"
