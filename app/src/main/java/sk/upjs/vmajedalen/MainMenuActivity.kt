@@ -26,9 +26,9 @@ class MainMenuActivity : ComponentActivity() {
         btnOcr.setOnClickListener {
             startActivity(Intent(this, OCRActivity::class.java))
         }
-        //btnRecords.setOnClickListener {
-        //    startActivity(Intent(this, RecordsActivity::class.java))
-        //}
+        btnRecords.setOnClickListener {
+            startActivity(Intent(this, RecordsActivity::class.java))
+        }
         //btnStats.setOnClickListener {
         //    startActivity(Intent(this, StatsActivity::class.java))
         //}

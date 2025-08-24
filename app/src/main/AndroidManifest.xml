@@ -30,6 +30,11 @@
             android:exported="false"
             android:theme="@style/Theme.VMAJedalen" />
 
+        <activity
+            android:name=".RecordsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.VMAJedalen" />
+
     </application>
 
 </manifest>

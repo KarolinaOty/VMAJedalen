@@ -45,45 +45,45 @@ abstract class AppDatabase : RoomDatabase() {
 @Dao
 interface FoodDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertFood(food: Food): Long
+    suspend fun insertFood(food: Food): Long
 
     @Query("SELECT * FROM food WHERE name = :name LIMIT 1")
-    fun getFoodByName(name: String): Food?
+    suspend fun getFoodByName(name: String): Food?
 
     @Query("SELECT * FROM food")
-    fun getAllFoods(): List<Food>
+    suspend fun getAllFoods(): List<Food>
 }
 
 @Dao
 interface LunchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertLunch(lunch: Lunch): Long
+    suspend fun insertLunch(lunch: Lunch): Long
 
     @Query("SELECT * FROM lunches")
-    fun getAllLunches(): List<Lunch>
+    suspend fun getAllLunches(): List<Lunch>
 
     @Query("SELECT * FROM lunches WHERE date LIKE '%-' || :month || '-' || :year")
-    fun getLunchesByYearMonth(year: String, month: String): List<Lunch>
+    suspend fun getLunchesByYearMonth(year: String, month: String): List<Lunch>
 
 }
 
 @Dao
 interface LunchItemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertLunchItem(item: LunchItem)
+    suspend fun insertLunchItem(item: LunchItem)
 
     @Query("SELECT * FROM lunch_items WHERE lunchId = :lunchId")
-    fun getItemsForLunch(lunchId: Int): List<LunchItem>
+    suspend fun getItemsForLunch(lunchId: Int): List<LunchItem>
 
     @Query("SELECT * FROM lunch_items")
-    fun getAllLunchItems(): List<LunchItem>
+    suspend fun getAllLunchItems(): List<LunchItem>
 }
 
 @Dao
 interface LunchWithItemsDao {
     @Query("SELECT * FROM lunches")
-    fun getLunchesWithItems(): List<LunchWithItems>
+    suspend fun getLunchesWithItems(): List<LunchWithItems>
 
     @Query("SELECT * FROM lunches WHERE id = :lunchId")
-    fun getLunchWithItems(lunchId: Int): LunchWithItems
+    suspend fun getLunchWithItems(lunchId: Int): LunchWithItems
 }
