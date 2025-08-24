@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:padding="8dp"
+    android:padding="16dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_card_background"
+    android:layout_marginBottom="8dp"
+    android:layout_marginHorizontal="8dp"
+    android:gravity="center_vertical">
 
     <TextView
         android:id="@+id/tvDate"
@@ -11,7 +15,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="2"
         android:text="01-07-2025"
-        android:textSize="24sp"/>
+        android:textSize="16sp"
+        android:textColor="#1F2937"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/tvTime"
@@ -19,7 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="11:05"
-        android:textSize="24sp"
+        android:textSize="16sp"
+        android:textColor="#6B7280"
         android:gravity="center"/>
 
     <TextView
@@ -28,6 +35,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="4.15 €"
-        android:textSize="24sp"
+        android:textSize="16sp"
+        android:textColor="#059669"
+        android:textStyle="bold"
         android:gravity="end"/>
+
 </LinearLayout>

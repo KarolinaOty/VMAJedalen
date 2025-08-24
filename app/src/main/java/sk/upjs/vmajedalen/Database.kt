@@ -52,6 +52,9 @@ interface FoodDao {
 
     @Query("SELECT * FROM food")
     suspend fun getAllFoods(): List<Food>
+
+    @Query("SELECT * FROM food WHERE id = :id LIMIT 1")
+    suspend fun getFoodById(id: Int): Food?
 }
 
 @Dao
@@ -65,6 +68,9 @@ interface LunchDao {
     @Query("SELECT * FROM lunches WHERE date LIKE '%-' || :month || '-' || :year")
     suspend fun getLunchesByYearMonth(year: String, month: String): List<Lunch>
 
+    @Query("SELECT COUNT(DISTINCT date) FROM lunches WHERE date LIKE '%-' || :month || '-' || :year")
+    suspend fun countUniqueDaysInMonth(year: String, month: String): Int
+
 }
 
 @Dao
@@ -77,6 +83,9 @@ interface LunchItemDao {
 
     @Query("SELECT * FROM lunch_items")
     suspend fun getAllLunchItems(): List<LunchItem>
+
+    @Query("SELECT * FROM lunch_items WHERE lunchId IN (:lunchIds)")
+    suspend fun getItemsForLunches(lunchIds: List<Int>): List<LunchItem>
 }
 
 @Dao

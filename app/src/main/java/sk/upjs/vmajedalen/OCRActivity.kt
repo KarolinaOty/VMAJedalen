@@ -53,6 +53,7 @@ class OCRActivity : AppCompatActivity() {
                         val filteredBitmap = gpuImage.bitmapWithFilterApplied
                         imageView.setImageBitmap(filteredBitmap)
                         imageView.visibility = View.VISIBLE
+                        findViewById<View>(R.id.btnExtractText).isEnabled = true
                     } catch (e: Exception) {
                         Toast.makeText(this, "Error loading picture", Toast.LENGTH_LONG).show()
                     }
@@ -68,15 +69,23 @@ class OCRActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
 
         // button for photo
-        findViewById<View>(R.id.button2).setOnClickListener {
+        findViewById<View>(R.id.btnSelectPhoto).setOnClickListener {
             openGallery()
         }
 
         // button for OCR
-        findViewById<View>(R.id.button3).setOnClickListener {
+        findViewById<View>(R.id.btnExtractText).setOnClickListener {
             selectedImageUri?.let { uri ->
                 try {
                     val image = InputImage.fromFilePath(this, uri)
+
+                    // Show loader + status
+                    findViewById<View>(R.id.loaderLayout).visibility = View.VISIBLE
+                    findViewById<TextView>(R.id.statusText).apply {
+                        text = "Spracovanie prebieha..."
+                        visibility = View.VISIBLE
+                    }
+
                     recognizeText(image)
                 } catch (e: IOException) {
                     Toast.makeText(this, "Error reading image", Toast.LENGTH_LONG).show()
@@ -111,10 +120,19 @@ class OCRActivity : AppCompatActivity() {
                 val receiptText = sb.toString()
                 tv.text = receiptText
 
+                //hide, disable button, show results
+                findViewById<View>(R.id.progressBar).visibility = View.GONE
+                findViewById<TextView>(R.id.statusText).text = "Spracovanie dokončené"
+                findViewById<View>(R.id.btnExtractText).isEnabled = false
+                findViewById<View>(R.id.resultsCard).visibility = View.VISIBLE
                 parseAndSaveReceipt(receiptText)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Text recognition failed", Toast.LENGTH_LONG).show()
+
+                // Hide, update
+                findViewById<View>(R.id.progressBar).visibility = View.GONE
+                findViewById<TextView>(R.id.statusText).text = "Spracovanie zlyhalo"
             }
     }
 

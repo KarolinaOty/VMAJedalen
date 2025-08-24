@@ -1,58 +1,129 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#D9A27A"
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/inputYear"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Zadaj rok (2025)"
-        android:inputType="number"
-        android:padding="8dp" />
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/inputMonth"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Zadaj mesiac (01-12)"
-        android:inputType="number"
-        android:padding="8dp" />
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Záznamy obedov"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="#1F2937"
+            android:layout_marginBottom="24dp"
+            android:padding="8dp"/>
 
-    <Button
-        android:id="@+id/btnFilter"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Filtruj"
-        android:enabled="false" />
-    <!-- start disabled -->
+        <!-- Input Fields -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="16dp">
 
-    <!-- Total result -->
-    <TextView
-        android:id="@+id/tvTotal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Spolu: 0.00 €"
-        android:textSize="24sp"
-        android:paddingTop="8dp"
-        android:textStyle="bold" />
+            <EditText
+                android:id="@+id/inputYear"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:hint="Rok (napr. 2025)"
+                android:inputType="number"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginEnd="8dp"
+                android:textSize="16sp"/>
 
-    <!-- RecyclerView for data -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewRecords"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="8dp" />
+            <EditText
+                android:id="@+id/inputMonth"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:hint="Mesiac (01-12)"
+                android:inputType="number"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/edit_text_background"
+                android:textSize="16sp"/>
+        </LinearLayout>
 
-    <!-- Progress bar -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
+        <!-- Button -->
+        <Button
+            android:id="@+id/btnFilter"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Filtruj"
+            android:enabled="false"
+            android:backgroundTint="#A45F19"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:background="@drawable/rounded_button_background"
+            android:layout_marginBottom="24dp"/>
 
-</LinearLayout>
+        <!-- Total result Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_card_background"
+            android:padding="20dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Celková suma"
+                android:textSize="14sp"
+                android:textColor="#6B7280"
+                android:layout_marginBottom="4dp"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/tvTotal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0.00 €"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#059669"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- RecyclerView for data -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewRecords"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:background="@drawable/rounded_card_background"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Bottom Spacing -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp"/>
+
+    </LinearLayout>
+</ScrollView>

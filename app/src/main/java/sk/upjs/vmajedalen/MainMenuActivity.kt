@@ -29,9 +29,9 @@ class MainMenuActivity : ComponentActivity() {
         btnRecords.setOnClickListener {
             startActivity(Intent(this, RecordsActivity::class.java))
         }
-        //btnStats.setOnClickListener {
-        //    startActivity(Intent(this, StatsActivity::class.java))
-        //}
+        btnStats.setOnClickListener {
+            startActivity(Intent(this, StatisticsActivity::class.java))
+        }
         //btnCalculator.setOnClickListener {
         //    startActivity(Intent(this, CalculatorActivity::class.java))
         //}

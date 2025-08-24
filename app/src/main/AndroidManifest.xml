@@ -40,6 +40,11 @@
             android:exported="false"
             android:theme="@style/Theme.VMAJedalen" />
 
+        <activity
+            android:name=".StatisticsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.VMAJedalen" />
+
 
     </application>
 

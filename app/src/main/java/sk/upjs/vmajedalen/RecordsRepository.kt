@@ -7,6 +7,7 @@ class RecordsRepository(private val db: AppDatabase) {
     suspend fun insertFood(food: Food): Long = db.foodDao().insertFood(food)
     suspend fun getFoodByName(name: String): Food? = db.foodDao().getFoodByName(name)
     suspend fun getAllFoods(): List<Food> = db.foodDao().getAllFoods()
+    suspend fun getFoodById(id: Int): Food? = db.foodDao().getFoodById(id)
 
     //lunch
     suspend fun insertLunch(lunch: Lunch): Long = db.lunchDao().insertLunch(lunch)
@@ -17,8 +18,10 @@ class RecordsRepository(private val db: AppDatabase) {
     suspend fun insertLunchItem(item: LunchItem) = db.lunchItemDao().insertLunchItem(item)
     suspend fun getItemsForLunch(lunchId: Int): List<LunchItem> = db.lunchItemDao().getItemsForLunch(lunchId)
     suspend fun getAllLunchItems(): List<LunchItem> = db.lunchItemDao().getAllLunchItems()
+    suspend fun getItemsForLunches(lunchIds: List<Int>): List<LunchItem> = db.lunchItemDao().getItemsForLunches(lunchIds)
 
     //lunch with items
     suspend fun getLunchesWithItems(): List<LunchWithItems> = db.lunchWithItemsDao().getLunchesWithItems()
     suspend fun getLunchWithItems(id: Int): LunchWithItems = db.lunchWithItemsDao().getLunchWithItems(id)
+    suspend fun countUniqueDays(year: String, month: String): Int = db.lunchDao().countUniqueDaysInMonth(year, month)
 }

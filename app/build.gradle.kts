@@ -76,4 +76,6 @@ dependencies {
     implementation (libs.gpuimage)
     api(libs.kotlinx.coroutines.android)
     api(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.cardview)
+
 }
