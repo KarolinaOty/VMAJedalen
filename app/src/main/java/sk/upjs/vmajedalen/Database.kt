@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Food::class, Lunch::class, LunchItem::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 

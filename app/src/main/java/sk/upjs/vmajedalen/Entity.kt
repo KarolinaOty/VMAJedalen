@@ -47,7 +47,8 @@ data class LunchItem(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val lunchId: Int,
     val foodId: Int,
-    val price: Double
+    val price: Double,
+    val quantity: Int = 1
 )
 
 data class LunchWithItems(

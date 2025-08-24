@@ -1,9 +1,7 @@
 package sk.upjs.vmajedalen
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -13,8 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -124,7 +120,7 @@ class OCRActivity : AppCompatActivity() {
 
     private fun parseAndSaveReceipt(receiptText: String) {
         val lines = receiptText.split("\n").map { it.trim() }.filter { it.isNotBlank() }
-        val items = mutableListOf<Pair<String, Double>>()
+        val items = mutableListOf<Triple<String, Int, Double>>() // Changed to Triple: (name, quantity, unitPrice)
         var total: Double? = null
         var date: String? = null
         var time: String? = null
@@ -136,24 +132,24 @@ class OCRActivity : AppCompatActivity() {
         while (i < lines.size && !itemsEnd) {
             val line = lines[i]
 
-            // Check for items end marker (line with XK* pattern)
+            // Check for end marker (line with XK* pattern)
             if (line.contains("XK*") || hasRepeatedChars(line, 2, setOf('X', '*', 'K'))) {
                 itemsEnd = true
                 i++
                 continue
             }
 
-            // Process item group (3 lines)
+            // Process item group (3 lines): NAME -> QUANTITY * PRICE -> = FINAL PRICE
             if (i + 2 < lines.size) {
                 val nameLine = lines[i]
-                val quantityLine = lines[i + 1]
-                val priceLine = lines[i + 2]
+                val quantityPriceLine = lines[i + 1]
+                val finalPriceLine = lines[i + 2]
 
-                // Extract price from the 3rd line (final price)
-                val price = tryExtractPrice(priceLine)
+                // Parse quantity and unit price from the second line
+                val (quantity, unitPrice) = parseQuantityAndPrice(quantityPriceLine)
 
-                if (price != null && nameLine.isNotBlank()) {
-                    items.add(Pair(nameLine, price))
+                if (quantity != null && unitPrice != null && nameLine.isNotBlank()) {
+                    items.add(Triple(nameLine, quantity, unitPrice))
                     i += 3 // Skip the processed lines
                 } else {
                     i++ // Move to next line if not a valid item
@@ -163,7 +159,7 @@ class OCRActivity : AppCompatActivity() {
             }
         }
 
-        // Now look for total and date/time after items section
+        // Look for total and date/time after items section
         while (i < lines.size) {
             val line = lines[i]
 
@@ -187,13 +183,13 @@ class OCRActivity : AppCompatActivity() {
         if (items.isNotEmpty() && total != null && date != null && time != null) {
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    // Get database instance when needed
+
                     val database = AppDatabase.getDatabase(this@OCRActivity)
                     val foodDao = database.foodDao()
                     val lunchDao = database.lunchDao()
                     val lunchItemDao = database.lunchItemDao()
 
-                    // Create new lunch record
+
                     val lunchId = lunchDao.insertLunch(
                         Lunch(
                             date = date,
@@ -202,8 +198,8 @@ class OCRActivity : AppCompatActivity() {
                         )
                     ).toInt()
 
-                    // Insert food items
-                    items.forEach { (name, price) ->
+
+                    items.forEach { (name, quantity, unitPrice) ->
                         var food = foodDao.getFoodByName(name)
                         if (food == null) {
                             val foodId = foodDao.insertFood(Food(name = name))
@@ -214,7 +210,8 @@ class OCRActivity : AppCompatActivity() {
                             LunchItem(
                                 lunchId = lunchId,
                                 foodId = food.id,
-                                price = price
+                                quantity = quantity,
+                                price = unitPrice
                             )
                         )
                     }
@@ -241,12 +238,47 @@ class OCRActivity : AppCompatActivity() {
         }
     }
 
+    private fun parseQuantityAndPrice(line: String): Pair<Int?, Double?> {
+        // Patterns to match: "2 * 1.85", "1x3.50", "3 * 2,00", etc.
+        val patterns = listOf(
+            Regex("(\\d+)\\s*[*xX]\\s*(\\d+[.,]\\d+)"),  // 2 * 1.85 or 1x3.50
+            Regex("(\\d+)\\s*[*xX]\\s*(\\d+)"),          // 2 * 3 (no decimal)
+            Regex("(\\d+)\\s+(\\d+[.,]\\d+)"),           // 2 1.85 (space separated)
+            Regex("(\\d+)(\\d+[.,]\\d+)")                // 21.85 (no separator)
+        )
+
+        for (pattern in patterns) {
+            val match = pattern.find(line)
+            if (match != null && match.groupValues.size >= 3) {
+                val quantityStr = match.groupValues[1]
+                var priceStr = match.groupValues[2]
+
+                // Clean the price string
+                priceStr = priceStr.replace(",", ".")
+                    .replace("\\s".toRegex(), "")
+                    .trim()
+
+                val quantity = quantityStr.toIntOrNull()
+                val unitPrice = priceStr.toDoubleOrNull()
+
+                if (quantity != null && unitPrice != null) {
+                    return Pair(quantity, unitPrice)
+                }
+            }
+        }
+
+        // Fallback: try to extract just the price if quantity parsing fails
+        val price = tryExtractPrice(line)
+        return Pair(1, price) // Default quantity to 1 if only price is found
+    }
+
+    // Update your tryExtractPrice function to handle unit prices better
     private fun tryExtractPrice(line: String): Double? {
         // Handle various price formats including OCR errors
         val patterns = listOf(
-            Regex("[=*]\\s*\\d+[.,]\\s*\\d+"),      // =3,70 or *3,70
-            Regex("\\d+\\s*[*xX]\\s*\\d+[.,]\\d+"), // 1 *3,70
-            Regex("\\d+[.,]\\s*\\d+"),              // 3,70 or 3.70
+            Regex("\\d+[.,]\\s*\\d+"),              // 3,70 or 3.70 (unit price)
+            Regex("[=*]\\s*\\d+[.,]\\s*\\d+"),      // =3,70 or *3,70 (final price)
+            Regex("\\d+\\s*[*xX]\\s*\\d+[.,]\\d+"), // 1 *3,70 (quantity * price)
             Regex("[=*]\\s*\\d+"),                  // =3 or *3 (simple price)
             Regex("\\d+")                           // Just numbers
         )
