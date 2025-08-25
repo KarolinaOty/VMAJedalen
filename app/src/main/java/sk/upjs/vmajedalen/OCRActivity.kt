@@ -25,19 +25,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.provider.MediaStore
+import android.widget.Button
+import android.widget.EditText
 import androidx.lifecycle.ViewModelProvider
 
 
 
 class OCRActivity : AppCompatActivity() {
 
-    private lateinit var tv: TextView
+
     private lateinit var imageView: ImageView
     private var selectedImageUri: Uri? = null
     private lateinit var viewModel: OCRViewModel
+    private lateinit var editableText: EditText
+    private lateinit var resultsCard: View
+    private lateinit var submitButton: Button
 
+    private var parsedReceiptRaw: String? = null  // keep original parsed text
 
-    //register gallery picker
+    // register gallery picker
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -48,7 +54,7 @@ class OCRActivity : AppCompatActivity() {
                         val inputStream = contentResolver.openInputStream(uri)
                         val bitmap = BitmapFactory.decodeStream(inputStream)
 
-                        //apply filter to help with readability
+                        // apply filter for readability
                         val gpuImage = GPUImage(this).apply { setImage(bitmap) }
                         gpuImage.setFilter(GPUImageContrastFilter(1.5f))
                         val filteredBitmap = gpuImage.bitmapWithFilterApplied
@@ -57,7 +63,7 @@ class OCRActivity : AppCompatActivity() {
 
                         findViewById<View>(R.id.btnExtractText).isEnabled = true
                     } catch (e: Exception) {
-                        Toast.makeText(this, "Error loading picture", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Chyba pri načítaní obrázku", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -67,8 +73,10 @@ class OCRActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ocr)
 
-        tv = findViewById(R.id.textView)
         imageView = findViewById(R.id.imageView)
+        editableText = findViewById(R.id.editableText)
+        resultsCard = findViewById(R.id.resultsCard)
+        submitButton = findViewById(R.id.btnSubmit)
 
         val database = AppDatabase.getDatabase(this)
         val repository = OCRRepository(database)
@@ -77,9 +85,7 @@ class OCRActivity : AppCompatActivity() {
         observeViewModel()
 
         // button for photo
-        findViewById<View>(R.id.btnSelectPhoto).setOnClickListener {
-            openGallery()
-        }
+        findViewById<View>(R.id.btnSelectPhoto).setOnClickListener { openGallery() }
 
         // button for OCR
         findViewById<View>(R.id.btnExtractText).setOnClickListener {
@@ -87,7 +93,6 @@ class OCRActivity : AppCompatActivity() {
                 try {
                     val image = InputImage.fromFilePath(this, uri)
 
-                    // loading status shown
                     findViewById<View>(R.id.loaderLayout).visibility = View.VISIBLE
                     findViewById<TextView>(R.id.statusText).apply {
                         text = "Spracovanie prebieha..."
@@ -96,19 +101,54 @@ class OCRActivity : AppCompatActivity() {
 
                     recognizeText(image)
                 } catch (e: IOException) {
-                    Toast.makeText(this, "Error reading image", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Chyba pri čítaní obrázku", Toast.LENGTH_LONG).show()
                 }
-            } ?: Toast.makeText(this, "No image selected", Toast.LENGTH_LONG).show()
+            } ?: Toast.makeText(this, "Žiaden obrázok nebol vybratý", Toast.LENGTH_LONG).show()
         }
 
+        // button for submit edited result
+        submitButton.setOnClickListener {
+            val userEditedText = editableText.text.toString().trim()
+            if (userEditedText.isEmpty()) {
+                Toast.makeText(this, "Nemôžeš uložiť prázdne dáta", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            submitButton.isEnabled = false
+
+
+            // re-parse edited text (ensures items, total, date, time exist)
+            val parsed = parseEditedReceipt(userEditedText)
+            if (parsed != null) {
+                val (items, total, date, time) = parsed
+                viewModel.saveReceipt(items, total, date, time)
+            } else {
+                Toast.makeText(this, "V editovaných dátach chýba jedlo/suma/dátum/čas", Toast.LENGTH_LONG).show()
+                submitButton.isEnabled = true
+            }
+        }
     }
 
     private fun observeViewModel() {
         viewModel.saveResult.observe(this) { result ->
             result.onSuccess { count ->
-                Toast.makeText(this, "Saved $count items successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "$count položka/y uložená/é", Toast.LENGTH_SHORT).show()
+
+                // reset activity state
+                editableText.text.clear()
+                imageView.setImageResource(R.drawable.image_placeholder_background)
+                imageView.visibility = View.VISIBLE
+                resultsCard.visibility = View.GONE
+                submitButton.visibility = View.GONE
+                submitButton.isEnabled = true
+                selectedImageUri = null
+                parsedReceiptRaw = null
+
+                // re-enable buttons
+                findViewById<View>(R.id.btnSelectPhoto).isEnabled = true
+                findViewById<View>(R.id.btnExtractText).isEnabled = false
             }.onFailure { e ->
                 Toast.makeText(this, "Error saving: ${e.message}", Toast.LENGTH_LONG).show()
+                submitButton.isEnabled = true
             }
         }
     }
@@ -125,7 +165,6 @@ class OCRActivity : AppCompatActivity() {
             .addOnSuccessListener { visionText ->
                 val allLines = visionText.textBlocks.flatMap { it.lines }.toMutableList()
 
-                // sorts by x,y position to make sure it reads text in correct order
                 allLines.sortWith { l1, l2 ->
                     val r1 = l1.boundingBox
                     val r2 = l2.boundingBox
@@ -137,40 +176,36 @@ class OCRActivity : AppCompatActivity() {
                 val sb = StringBuilder()
                 allLines.forEach { line -> sb.append(line.text).append("\n") }
                 val receiptText = sb.toString()
-                tv.text = receiptText
 
-                //hide, disable button, show results
-                findViewById<View>(R.id.progressBar).visibility = View.GONE
+                // parse but don’t save, show in editable field
+                parsedReceiptRaw = receiptText
+                editableText.setText(receiptText)
+
+                findViewById<View>(R.id.loaderLayout).visibility = View.GONE
                 findViewById<TextView>(R.id.statusText).text = "Spracovanie dokončené"
                 findViewById<View>(R.id.btnExtractText).isEnabled = false
-                findViewById<View>(R.id.resultsCard).visibility = View.VISIBLE
-                parseAndSaveReceipt(receiptText)
+                resultsCard.visibility = View.VISIBLE
+                submitButton.visibility = View.VISIBLE
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Text recognition failed", Toast.LENGTH_LONG).show()
-
-                //hide, update
-                findViewById<View>(R.id.progressBar).visibility = View.GONE
+                findViewById<View>(R.id.loaderLayout).visibility = View.GONE
                 findViewById<TextView>(R.id.statusText).text = "Spracovanie zlyhalo"
             }
     }
 
-    private fun parseAndSaveReceipt(receiptText: String) {
-        val lines = receiptText.split("\n").map { it.trim() }.filter { it.isNotBlank() }
-        // food name, quantity, price
+    // Parse edited text again to ensure correctness before saving
+    private fun parseEditedReceipt(editedText: String): ParsedReceipt? {
+        val lines = editedText.split("\n").map { it.trim() }.filter { it.isNotBlank() }
         val items = mutableListOf<Triple<String, Int, Double>>()
         var total: Double? = null
         var date: String? = null
         var time: String? = null
-
         var i = 0
         var itemsEnd = false
 
-        // processes food items (groups of 3 lines) until we find the dividing X,K,* line
         while (i < lines.size && !itemsEnd) {
             val line = lines[i]
-
-            // check for line with XK* pattern
             val specialChars = setOf('X', 'K', '*')
             val count = line.count { it in specialChars }
             if (count >= 2) {
@@ -178,62 +213,34 @@ class OCRActivity : AppCompatActivity() {
                 i++
                 continue
             }
-
-            // Process item group (3 lines): NAME -> QUANTITY * PRICE -> = FINAL PRICE
             if (i + 2 < lines.size) {
                 val nameLine = lines[i]
                 val quantityPriceLine = lines[i + 1]
-                val finalPriceLine = lines[i + 2]
-
-                // Parse quantity and unit price from the second line
-                val (quantity, unitPrice) = parseQuantityAndPrice(quantityPriceLine)
-                if (quantity != null && unitPrice != null && nameLine.isNotBlank()) {
-                    items.add(Triple(nameLine, quantity, unitPrice))
-                    i += 3 // Skip the processed lines
-                } else {
-                    i++ // Move to next line if not a valid item
-                }
-            } else {
-                i++ // Not enough lines for a complete food item
-            }
+                val (q, p) = parseQuantityAndPrice(quantityPriceLine)
+                if (q != null && p != null) {
+                    items.add(Triple(nameLine, q, p))
+                    i += 3
+                } else i++
+            } else i++
         }
 
-        // total and date/time after foods
         while (i < lines.size) {
             val line = lines[i]
-
             when {
-                line.contains("Celkom", ignoreCase = true) -> {
-                    if (i + 1 < lines.size) {
-                        total = parseAmount(lines[i + 1])
-                        i++ // skip total line
-                    }
+                line.contains("Celkom", ignoreCase = true) && i + 1 < lines.size -> {
+                    total = parseAmount(lines[i + 1]); i++
                 }
-
-                //regex to find the patter dd-mm-yyyy and hh:mm
                 line.matches(Regex("\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}")) -> {
                     val parts = line.split(" ")
-                    date = parts[0]
-                    time = parts[1]
+                    date = parts[0]; time = parts[1]
                 }
             }
             i++
         }
 
-        //when we found all the needed data (used as a check to see if the photo
-        // we input was in incorrect format or not even a bill at all)
-        if (items.isNotEmpty() && total != null && date != null && time != null) {
-            viewModel.saveReceipt(items, total, date, time)
-        } else {
-            val errorMsg = buildString {
-                append("Missing: ")
-                if (items.isEmpty()) append("items ")
-                if (total == null) append("total ")
-                if (date == null) append("date ")
-                if (time == null) append("time ")
-            }
-            Toast.makeText(this, "Parse failed: $errorMsg", Toast.LENGTH_LONG).show()
-        }
+        return if (items.isNotEmpty() && total != null && date != null && time != null) {
+            ParsedReceipt(items, total, date, time)
+        } else null
     }
 
     private fun parseQuantityAndPrice(line: String): Pair<Int?, Double?> {
@@ -309,4 +316,10 @@ class OCRActivity : AppCompatActivity() {
         return cleanAmount.toDoubleOrNull()
     }
 
+    private data class ParsedReceipt(
+        val items: List<Triple<String, Int, Double>>,
+        val total: Double,
+        val date: String,
+        val time: String
+    )
 }

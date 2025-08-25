@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
@@ -55,20 +53,9 @@
                 android:contentDescription="Náhľad vybratej fotky"
                 android:layout_marginBottom="16dp"
                 android:visibility="visible"/>
-
-            <TextView
-                android:id="@+id/tvNoImage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Vyberte fotku bločku"
-                android:textSize="16sp"
-                android:textColor="#6B7280"
-                android:gravity="center"
-                android:layout_marginBottom="16dp"/>
-
         </LinearLayout>
 
-        <!-- Buttons Card -->
+        <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,27 +68,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Vybrať fotku"
-                android:textSize="16sp"
                 android:textAllCaps="false"
                 android:background="@drawable/rounded_button_background"
                 android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:layout_marginBottom="16dp"/>
 
             <Button
                 android:id="@+id/btnExtractText"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Spracovať text"
-                android:textSize="16sp"
                 android:textAllCaps="false"
                 android:background="@drawable/rounded_button_background"
                 android:textColor="@android:color/white"
-                android:enabled="false"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
-
+                android:enabled="false"/>
         </LinearLayout>
 
+        <!-- Loader -->
         <LinearLayout
             android:id="@+id/loaderLayout"
             android:layout_width="match_parent"
@@ -124,51 +107,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Spracovanie prebieha..."
-                android:textSize="14sp"
-                android:textColor="#1F2937"
                 android:visibility="gone"/>
         </LinearLayout>
 
-        <!-- OCR Results Card -->
+        <!-- Editable OCR Results -->
         <LinearLayout
+            android:id="@+id/resultsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/rounded_card_background"
             android:padding="24dp"
             android:layout_marginTop="24dp"
-            android:visibility="gone"
-            android:id="@+id/resultsCard">
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Rozpoznaný text"
+                android:text="Skontrolujte a opravte výsledky"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#1F2937"
                 android:gravity="center"
                 android:layout_marginBottom="16dp"/>
 
-            <TextView
-                android:id="@+id/textView"
+            <EditText
+                android:id="@+id/editableText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textSize="14sp"
-                android:textColor="#1F2937"
-                android:lineSpacingMultiplier="1.2"
-                android:padding="8dp"
+                android:layout_height="200dp"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:scrollbars="vertical"
+                android:overScrollMode="always"
                 android:background="@drawable/text_background"
-                android:maxLines="10"
-                android:scrollbars="vertical"/>
+                android:padding="8dp"/>
 
+            <Button
+                android:id="@+id/btnSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Uložiť výsledok"
+                android:textAllCaps="false"
+                android:background="@drawable/rounded_button_background"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="16dp"/>
         </LinearLayout>
-
-        <!-- Bottom Spacing -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="32dp"/>
 
     </LinearLayout>
 </ScrollView>

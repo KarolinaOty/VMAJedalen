@@ -65,7 +65,7 @@
             android:layout_height="56dp"
             android:text="Filtruj"
             android:enabled="false"
-            android:backgroundTint="#A45F19"
+            android:backgroundTint="#00823A"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textAllCaps="false"
