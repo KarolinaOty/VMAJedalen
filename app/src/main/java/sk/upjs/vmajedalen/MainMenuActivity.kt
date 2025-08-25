@@ -20,7 +20,6 @@ class MainMenuActivity : ComponentActivity() {
         val btnOcr = findViewById<Button>(R.id.btnOcr)
         val btnRecords = findViewById<Button>(R.id.btnRecords)
         val btnStats = findViewById<Button>(R.id.btnStats)
-        val btnCalculator = findViewById<Button>(R.id.btnCalculator)
 
         //listeners
         btnOcr.setOnClickListener {
@@ -32,8 +31,5 @@ class MainMenuActivity : ComponentActivity() {
         btnStats.setOnClickListener {
             startActivity(Intent(this, StatisticsActivity::class.java))
         }
-        //btnCalculator.setOnClickListener {
-        //    startActivity(Intent(this, CalculatorActivity::class.java))
-        //}
     }
 }

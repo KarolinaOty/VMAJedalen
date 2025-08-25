@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="32dp"
-    android:background="#D9A27A">
+    android:background="#52BC83">
 
     <TextView
         android:layout_width="match_parent"
@@ -55,16 +55,5 @@
         android:layout_marginVertical="12dp"
         style="@style/Widget.AppCompat.Button.Borderless"/>
 
-    <Button
-        android:id="@+id/btnCalculator"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Kalkulačka"
-        android:textSize="16sp"
-        android:textAllCaps="false"
-        android:background="@drawable/rounded_button_background"
-        android:textColor="@android:color/white"
-        android:layout_marginVertical="12dp"
-        style="@style/Widget.AppCompat.Button.Borderless"/>
 
 </LinearLayout>
