@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.provider.MediaStore
+import androidx.lifecycle.ViewModelProvider
 
 
 
@@ -32,11 +33,11 @@ class OCRActivity : AppCompatActivity() {
 
     private lateinit var tv: TextView
     private lateinit var imageView: ImageView
-
     private var selectedImageUri: Uri? = null
+    private lateinit var viewModel: OCRViewModel
 
 
-    // Register gallery picker
+    //register gallery picker
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -47,12 +48,13 @@ class OCRActivity : AppCompatActivity() {
                         val inputStream = contentResolver.openInputStream(uri)
                         val bitmap = BitmapFactory.decodeStream(inputStream)
 
-                        // Apply GPU filter
+                        //apply filter to help with readability
                         val gpuImage = GPUImage(this).apply { setImage(bitmap) }
                         gpuImage.setFilter(GPUImageContrastFilter(1.5f))
                         val filteredBitmap = gpuImage.bitmapWithFilterApplied
                         imageView.setImageBitmap(filteredBitmap)
                         imageView.visibility = View.VISIBLE
+
                         findViewById<View>(R.id.btnExtractText).isEnabled = true
                     } catch (e: Exception) {
                         Toast.makeText(this, "Error loading picture", Toast.LENGTH_LONG).show()
@@ -68,6 +70,12 @@ class OCRActivity : AppCompatActivity() {
         tv = findViewById(R.id.textView)
         imageView = findViewById(R.id.imageView)
 
+        val database = AppDatabase.getDatabase(this)
+        val repository = OCRRepository(database)
+        viewModel = ViewModelProvider(this, OCRViewModel.Factory(repository))[OCRViewModel::class.java]
+
+        observeViewModel()
+
         // button for photo
         findViewById<View>(R.id.btnSelectPhoto).setOnClickListener {
             openGallery()
@@ -79,7 +87,7 @@ class OCRActivity : AppCompatActivity() {
                 try {
                     val image = InputImage.fromFilePath(this, uri)
 
-                    // Show loader + status
+                    // loading status shown
                     findViewById<View>(R.id.loaderLayout).visibility = View.VISIBLE
                     findViewById<TextView>(R.id.statusText).apply {
                         text = "Spracovanie prebieha..."
@@ -95,6 +103,16 @@ class OCRActivity : AppCompatActivity() {
 
     }
 
+    private fun observeViewModel() {
+        viewModel.saveResult.observe(this) { result ->
+            result.onSuccess { count ->
+                Toast.makeText(this, "Saved $count items successfully", Toast.LENGTH_SHORT).show()
+            }.onFailure { e ->
+                Toast.makeText(this, "Error saving: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         pickImageLauncher.launch(intent)
@@ -107,6 +125,7 @@ class OCRActivity : AppCompatActivity() {
             .addOnSuccessListener { visionText ->
                 val allLines = visionText.textBlocks.flatMap { it.lines }.toMutableList()
 
+                // sorts by x,y position to make sure it reads text in correct order
                 allLines.sortWith { l1, l2 ->
                     val r1 = l1.boundingBox
                     val r2 = l2.boundingBox
@@ -130,7 +149,7 @@ class OCRActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "Text recognition failed", Toast.LENGTH_LONG).show()
 
-                // Hide, update
+                //hide, update
                 findViewById<View>(R.id.progressBar).visibility = View.GONE
                 findViewById<TextView>(R.id.statusText).text = "Spracovanie zlyhalo"
             }
@@ -138,7 +157,8 @@ class OCRActivity : AppCompatActivity() {
 
     private fun parseAndSaveReceipt(receiptText: String) {
         val lines = receiptText.split("\n").map { it.trim() }.filter { it.isNotBlank() }
-        val items = mutableListOf<Triple<String, Int, Double>>() // Changed to Triple: (name, quantity, unitPrice)
+        // food name, quantity, price
+        val items = mutableListOf<Triple<String, Int, Double>>()
         var total: Double? = null
         var date: String? = null
         var time: String? = null
@@ -146,12 +166,14 @@ class OCRActivity : AppCompatActivity() {
         var i = 0
         var itemsEnd = false
 
-        // Process items (groups of 3 lines) until we find the X,K,* line
+        // processes food items (groups of 3 lines) until we find the dividing X,K,* line
         while (i < lines.size && !itemsEnd) {
             val line = lines[i]
 
-            // Check for end marker (line with XK* pattern)
-            if (line.contains("XK*") || hasRepeatedChars(line, 2, setOf('X', '*', 'K'))) {
+            // check for line with XK* pattern
+            val specialChars = setOf('X', 'K', '*')
+            val count = line.count { it in specialChars }
+            if (count >= 2) {
                 itemsEnd = true
                 i++
                 continue
@@ -165,7 +187,6 @@ class OCRActivity : AppCompatActivity() {
 
                 // Parse quantity and unit price from the second line
                 val (quantity, unitPrice) = parseQuantityAndPrice(quantityPriceLine)
-
                 if (quantity != null && unitPrice != null && nameLine.isNotBlank()) {
                     items.add(Triple(nameLine, quantity, unitPrice))
                     i += 3 // Skip the processed lines
@@ -173,11 +194,11 @@ class OCRActivity : AppCompatActivity() {
                     i++ // Move to next line if not a valid item
                 }
             } else {
-                i++ // Not enough lines for a complete item
+                i++ // Not enough lines for a complete food item
             }
         }
 
-        // Look for total and date/time after items section
+        // total and date/time after foods
         while (i < lines.size) {
             val line = lines[i]
 
@@ -185,10 +206,11 @@ class OCRActivity : AppCompatActivity() {
                 line.contains("Celkom", ignoreCase = true) -> {
                     if (i + 1 < lines.size) {
                         total = parseAmount(lines[i + 1])
-                        i++ // Skip total label line
+                        i++ // skip total line
                     }
                 }
 
+                //regex to find the patter dd-mm-yyyy and hh:mm
                 line.matches(Regex("\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}")) -> {
                     val parts = line.split(" ")
                     date = parts[0]
@@ -198,52 +220,10 @@ class OCRActivity : AppCompatActivity() {
             i++
         }
 
+        //when we found all the needed data (used as a check to see if the photo
+        // we input was in incorrect format or not even a bill at all)
         if (items.isNotEmpty() && total != null && date != null && time != null) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-
-                    val database = AppDatabase.getDatabase(this@OCRActivity)
-                    val foodDao = database.foodDao()
-                    val lunchDao = database.lunchDao()
-                    val lunchItemDao = database.lunchItemDao()
-
-
-                    val lunchId = lunchDao.insertLunch(
-                        Lunch(
-                            date = date,
-                            time = time,
-                            total = total
-                        )
-                    ).toInt()
-
-
-                    items.forEach { (name, quantity, unitPrice) ->
-                        var food = foodDao.getFoodByName(name)
-                        if (food == null) {
-                            val foodId = foodDao.insertFood(Food(name = name))
-                            food = Food(foodId.toInt(), name)
-                        }
-
-                        lunchItemDao.insertLunchItem(
-                            LunchItem(
-                                lunchId = lunchId,
-                                foodId = food.id,
-                                quantity = quantity,
-                                price = unitPrice
-                            )
-                        )
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@OCRActivity, "Saved ${items.size} items successfully", Toast.LENGTH_SHORT).show()
-                    }
-
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@OCRActivity, "Error saving: ${e.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
+            viewModel.saveReceipt(items, total, date, time)
         } else {
             val errorMsg = buildString {
                 append("Missing: ")
@@ -290,7 +270,6 @@ class OCRActivity : AppCompatActivity() {
         return Pair(1, price) // Default quantity to 1 if only price is found
     }
 
-    // Update your tryExtractPrice function to handle unit prices better
     private fun tryExtractPrice(line: String): Double? {
         // Handle various price formats including OCR errors
         val patterns = listOf(
@@ -330,16 +309,4 @@ class OCRActivity : AppCompatActivity() {
         return cleanAmount.toDoubleOrNull()
     }
 
-    private fun hasRepeatedChars(line: String, minCount: Int, charsToCheck: Set<Char>): Boolean {
-        if (line.length < minCount) return false
-
-        for (char in charsToCheck) {
-            // Check if line contains multiple occurrences of the character
-            val charCount = line.count { it.equals(char, ignoreCase = true) }
-            if (charCount > minCount) {
-                return true
-            }
-        }
-        return false
-    }
 }
