@@ -3,6 +3,7 @@ package sk.upjs.vmajedalen
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +20,7 @@ class LunchDetailActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: LunchItemAdapter
     private lateinit var tvTotal: TextView
+    private lateinit var viewModel: LunchDetailViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,23 +33,19 @@ class LunchDetailActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
+        val database = AppDatabase.getDatabase(this)
+        val repository = LunchRepository(database)
+        viewModel = ViewModelProvider(
+            this,
+            LunchDetailViewModelFactory(repository)
+        )[LunchDetailViewModel::class.java]
+
+        viewModel.lunchItems.observe(this) { adapter.updateData(it) }
+        viewModel.total.observe(this) { tvTotal.text = "Total: %.2f €".format(it) }
+
         val lunchId = intent.getIntExtra(EXTRA_LUNCH_ID, -1)
         if (lunchId != -1) {
-            loadLunchItems(lunchId)
-        }
-    }
-
-    private fun loadLunchItems(lunchId: Int) {
-        val database = AppDatabase.getDatabase(this)
-        lifecycleScope.launch(Dispatchers.IO) {
-            val lunchWithItems = database.lunchWithItemsDao().getLunchWithItems(lunchId)
-            val items = lunchWithItems.items
-
-            withContext(Dispatchers.Main) {
-                adapter.updateData(items)
-                val total = items.sumOf { it.item.price * it.item.quantity }
-                tvTotal.text = "Total: %.2f €".format(total)
-            }
+            viewModel.loadLunch(lunchId)
         }
     }
 }

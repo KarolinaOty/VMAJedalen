@@ -53,12 +53,7 @@ class StatisticsActivity : AppCompatActivity() {
         val repository = RecordsRepository(database)
         viewModel = ViewModelProvider(
             this,
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return StatisticsViewModel(repository) as T
-                }
-            }
+            StatisticsViewModelFactory(repository)
         )[StatisticsViewModel::class.java]
 
         viewModel.totalSpent.observe(this) { tvTotalSpent.text = "%.2f €".format(it) }

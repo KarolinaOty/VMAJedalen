@@ -45,7 +45,7 @@ class RecordsActivity : AppCompatActivity() {
 
         btnFilter.isEnabled = false
 
-        //need to input both to unblock button
+        //need to input both date and month to unblock button
         val watcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 btnFilter.isEnabled = inputYear.text.isNotEmpty() && inputMonth.text.isNotEmpty()
@@ -86,7 +86,7 @@ class RecordsActivity : AppCompatActivity() {
         }
 
         viewModel.total.observe(this) { total ->
-            tvTotal.text = "Total: %.2f €".format(total)
+            tvTotal.text = "Spolu: %.2f €".format(total)
         }
 
         viewModel.loading.observe(this) { loading ->

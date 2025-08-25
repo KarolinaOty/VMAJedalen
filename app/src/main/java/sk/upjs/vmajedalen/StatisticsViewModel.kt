@@ -75,3 +75,15 @@ class StatisticsViewModel(private val repository: RecordsRepository) : ViewModel
         }
     }
 }
+
+class StatisticsViewModelFactory(
+    private val repository: RecordsRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(StatisticsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return StatisticsViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
