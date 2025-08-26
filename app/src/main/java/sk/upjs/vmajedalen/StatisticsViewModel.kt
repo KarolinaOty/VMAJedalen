@@ -9,7 +9,7 @@ import java.util.*
 class StatisticsViewModel(private val repository: RecordsRepository) : ViewModel() {
 
     val totalSpent = MutableLiveData<Double>()
-    val averagePerDay = MutableLiveData<Double>() // Changed from averagePerOrder
+    val averagePerDay = MutableLiveData<Double>()
     val averageLunchTime = MutableLiveData<String>()
     val daysAttended = MutableLiveData<Int>()
     val topFoods = MutableLiveData<List<Pair<String, Int>>>()
@@ -49,7 +49,7 @@ class StatisticsViewModel(private val repository: RecordsRepository) : ViewModel
             } else "00:00"
             averageLunchTime.postValue(avgTime)
 
-            // top 5 foods
+            // top 5 foods, order by count
             val allItems = lunches.flatMap { lunch ->
                 repository.getItemsForLunch(lunch.id)
             }
@@ -60,17 +60,17 @@ class StatisticsViewModel(private val repository: RecordsRepository) : ViewModel
                     foodCounts[food.name] = (foodCounts[food.name] ?: 0) + item.quantity
                 }
             }
+            // pick top 5
             val top5 = foodCounts.entries.sortedByDescending { it.value }.take(5)
                 .map { it.key to it.value }
             topFoods.postValue(top5)
 
-            // Example: calculate money spent per day
+            // money spent per day
             val dailyMap = lunches.groupBy { it.date.split("-")[0].toInt() } // assuming date = dd-MM-yyyy
                 .mapValues { entry -> entry.value.sumOf { it.total } }
             val dailyList = (1..31).map { day -> day to (dailyMap[day] ?: 0.0) }
 
-            _dailySpending.postValue(dailyList) // <- changed from .value to .postValue
-
+            _dailySpending.postValue(dailyList)
             loading.postValue(false)
         }
     }
